@@ -1,1 +1,1 @@
-# VULsCAN
+# VULsCAN 🌋
