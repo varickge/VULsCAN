@@ -15,3 +15,12 @@ This self-improving mechanism ensures that VULsCAN remains at the forefront of c
 
 In essence, VULsCAN represents a groundbreaking approach to software security. By harnessing the power of advanced computational techniques, it offers a comprehensive, intelligent, and evolving defense mechanism for software projects. 
 VULsCAN is not just a tool but a guardian, dedicated to securing the digital creations of today against the threats of tomorrow.
+
+# Project Diagram
+<img src="images/diagram.svg" width="1000">
+
+- GitHub Layer: The process starts with code submission from GitHub.
+- Code Analysis (ML/DL Models): This layer involves analysis by machine learning/deep learning models, such as transformers, to evaluate the code.
+- LLM Layer: The large language model analyzes the results from the previous step, scoring them and providing conclusions on aspects like vulnerabilities and sensitive information found in the code.
+- Feedback Loop: There's a cyclic feedback loop where the LLM layer sends information back to the ML/DL models to refine the analysis.
+
