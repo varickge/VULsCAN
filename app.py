@@ -1,89 +1,44 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QComboBox, QMessageBox
-from PyQt5.QtCore import QThread, pyqtSignal
-import os
-import shutil
-from git import Repo
+import gradio as gr
 
-class CloneRepoThread(QThread):
-    finished = pyqtSignal(str)
+from agency_swarm import Agency
+from agency.ReportGenerator import ReportGenerator
+from agency.CodeAnalyzer import CodeAnalyzer
+from agency.CEO import CEO
 
-    def __init__(self, repo_url, target_folder, file_extensions):
-        super().__init__()
-        self.repo_url = repo_url
-        self.target_folder = target_folder
-        self.file_extensions = file_extensions
+from dotenv import load_dotenv
+load_dotenv()
 
-    def run(self):
-        temp_clone_folder = 'temp_repo'
-        if os.path.exists(temp_clone_folder):
-            shutil.rmtree(temp_clone_folder)
-        Repo.clone_from(self.repo_url, temp_clone_folder)
+ceo = CEO()
+code_analyzer = CodeAnalyzer()
+report_generator = ReportGenerator()
 
-        for root, dirs, files in os.walk(temp_clone_folder):
-            for file in files:
-                if any(file.endswith(ext) for ext in self.file_extensions):
-                    file_path = os.path.join(root, file)
-                    shutil.copy(file_path, self.target_folder)
+agency = Agency([ceo, [ceo, code_analyzer],
+                 [code_analyzer, report_generator]],
+                shared_instructions='./agency_manifesto.md')
 
-        shutil.rmtree(temp_clone_folder)
-        self.finished.emit("Clone and file extraction complete!")
+def analyze_code(repo_link, code_type):
+    # Placeholder for your code analysis logic
+    # You would typically clone the repo and analyze files based on code_type here
+    message = agency.get_completion("Please analyze the code and generate a report.",
+                                yield_messages=False)
+    # Dummy data for demonstration
+    result_summary = f"Analysis completed for {code_type} files in {repo_link}"
 
-class App(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
+    
+    return message
 
-    def initUI(self):
-        layout = QVBoxLayout()
+# Define the dropdown options for code types
+code_types = ["Python", "C++", "C", "Java", "JavaScript"]
 
-        self.urlInput = QLineEdit(self)
-        self.urlInput.setPlaceholderText("Repository URL")
-        layout.addWidget(self.urlInput)
+# Setup the Gradio interface
+iface = gr.Interface(
+    fn=analyze_code,
+    inputs=[
+        gr.Textbox(label="GitHub Repository Link", placeholder="Enter GitHub repo URL here"),
+        gr.Dropdown(label="Select Code Type", choices=code_types)
+    ],
+    outputs=[gr.Textbox(label="Result Summary")],
+    title="VULsCAN Code Analysis Tool",
+)
 
-        self.targetFolderInput = QLineEdit(self)
-        self.targetFolderInput.setPlaceholderText("Target Folder")
-        layout.addWidget(self.targetFolderInput)
-
-        self.browseButton = QPushButton('Browse', self)
-        self.browseButton.clicked.connect(self.browseFolder)
-        layout.addWidget(self.browseButton)
-
-        self.languageCombo = QComboBox(self)
-        self.languageCombo.addItems(["Python (.py)", "C++ (.cpp)"])
-        layout.addWidget(self.languageCombo)
-
-        self.cloneButton = QPushButton('Clone and Extract', self)
-        self.cloneButton.clicked.connect(self.startClone)
-        layout.addWidget(self.cloneButton)
-
-        self.setLayout(layout)
-        self.setWindowTitle('Repo Clone and Extract')
-        self.setGeometry(300, 300, 300, 150)
-        self.show()
-
-    def browseFolder(self):
-        target_folder = QFileDialog.getExistingDirectory(self, "Select Directory")
-        self.targetFolderInput.setText(target_folder)
-
-    def startClone(self):
-        repo_url = self.urlInput.text()
-        target_folder = self.targetFolderInput.text()
-        language = self.languageCombo.currentText()
-        file_extensions = ['.py'] if 'Python' in language else ['.cpp']
-
-        if not repo_url or not target_folder:
-            QMessageBox.warning(self, "Missing Information", "Please specify both the repository URL and the target folder.")
-            return
-
-        self.cloneThread = CloneRepoThread(repo_url, target_folder, file_extensions)
-        self.cloneThread.finished.connect(self.onFinished)
-        self.cloneThread.start()
-
-    def onFinished(self, message):
-        QMessageBox.information(self, "Done", message)
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
+iface.launch()
