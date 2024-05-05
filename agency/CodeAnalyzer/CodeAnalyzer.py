@@ -5,7 +5,7 @@ class CodeAnalyzer(Agent):
     def __init__(self):
         super().__init__(
             name="CodeAnalyzer",
-            description="Specializes in retrieving the entire source code using the GitHub API, analyzing it against predefined quality and security standards. Communicates comprehensive findings to the Report Generator Agent for report compilation.",
+            description="Specializes in retrieving the entire source code using the GitHub API, analyzing it against predefined quality and security standards. Communicates comprehensive findings to the ReportGenerator for report compilation. You must ",
             instructions="./instructions.md",
             files_folder="./files",
             schemas_folder="./schemas",

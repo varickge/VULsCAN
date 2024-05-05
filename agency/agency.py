@@ -16,4 +16,4 @@ agency = Agency([ceo, [ceo, code_analyzer],
 
 if __name__ == '__main__':
     print(agency.get_completion("Please analyze the code and generate a report.",
-                                yield_messages=False))
+                                yield_messages=False, tool_choice='required'))
